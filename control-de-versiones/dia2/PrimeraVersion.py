@@ -29,7 +29,7 @@ class check:
         if contrasena != respuesta:
             acceso = False
             print("La contraseña que ha ingresado es incorrecta")
-            admin_contrasena()
+            check.admin_contrasena()
         elif contrasena == respuesta:
             acceso = True
  
@@ -49,7 +49,7 @@ class opcion:
     def ver_cuenta_balance():
         # A // ingresar a la cuenta
         user_input = input("Numero de Cuenta: ")
-        check_numCuenta(user_input)
+        check.numCuenta(user_input)
         ## acceder directamente  a la base de datos y mostrar la cuenta
          
         # B // acceder al balance de la cuenta
