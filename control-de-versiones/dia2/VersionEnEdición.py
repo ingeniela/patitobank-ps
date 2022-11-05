@@ -1,18 +1,20 @@
 ### ---- BACKEND: que todo funcione
 import random
 
+# database
 # cuenta de banco
 class cuenta:
     'Cuentas de banco'
     cuentas_creadas = 0
     
     def __init__(self):
-        print("Hasta ahora se han creado", cuenta.cuentas_creadas, "cuentas")
+        print("( Hasta ahora se han creado", cuenta.cuentas_creadas, "cuentas) ")
         
         self.codigo = cuenta.cuentas_creadas
         self.titular = input("Titular de la cuenta: ")
         self.curp = input("CURP del titular: ")
-        self.numCuenta = input("Numero de cuenta: ")
+        self.numCuenta = int(random.randint(1000000000, 9999999999))
+        self.balance = 0
         
         cuenta.cuentas_creadas +=1
         
@@ -38,6 +40,9 @@ class cuenta:
         self.balance-=self.cantidad
         self.transacciones+=1
         
+    def mostrarData(self):  
+        print("Datos de la cuenta: \n- Titular:", self.titular, " \n- Curp:", self.curp, " \n- Número de Cuenta:", self.numCuenta, " \n- Balance: $", self.balance, "\n")
+
     def mostrarCuentas(self):  
         print("(", self.codigo, "). Titular:", self.titular, ". Curp:", self.curp, ". Número de Cuenta:", self.numCuenta, ". Balance: $", self.balance, ". Transacciones realizadas: ", self.transacciones)
     
@@ -81,34 +86,24 @@ class check:
 # opciones que podria escoger el usuario  
 class opcion:
     # Opcion 1
-    def crear_cuenta():
-        # A // Crear la cuenta: Nombre del titular
-        titular = input("Ingrese el Nombre y Apellido del titular: ")
+    # Opcion 1
+    def crear_cuenta(cuenta_code):
+        # A // Crear la cuenta: Nombre del titular, B// Curp C// Generar numero de cuenta
+        print("\nPara crear una cuenta, por favor, coloque los datos que se le piden.")
+        cuenta_code = cuenta()
         
-        # B // Crear la cuenta: CURP
-        curp = input("Clave Unica de Registro de la Poblacion: ")
-        
-        # C // Numero de cuenta
-        numCuenta = str(random.randint(1000000000, 9999999999))
-
         # D // Mostrar datos de la cuenta creada
-        print("Cuenta creada con éxito. \n Nombre:", titular, "\n Curp:", curp, "\n Número de cuenta", numCuenta)
+        print("\n¡Cuenta creada con éxito!\n")
+        cuenta_code.mostrarData()
         print("Por favor guarde estos datos en un lugar seguro.")
 
         # C // Volver al menu de opciones
-        PatitoBank.volver_menu()
+        pregunta = input("¿Desea volver al inicio?")
+        PatitoBank.volver_menu(pregunta)
     # Opcion 2
     def ver_cuenta_balance():
         # A // ingresar a la cuenta
-        user_input = input("Numero de Cuenta: ")
-        check.numCuenta(user_input)
-        ## acceder directamente  a la base de datos y mostrar la cuenta
-         
-        # B // acceder al balance de la cuenta
-        ver_balance = print("Balance de una cuenta")
-        
-        # C // Volver al menu de opciones
-        PatitoBank.volver_menu()
+        data_cuenta1.mostrarData()
     # Opcion 3
     def depositar_dinero():
         # A // Ingresar numero de cuenta a depositar dinero
@@ -155,11 +150,16 @@ class PatitoBank:
     
     def menu_opcion():
         print("1: Crear una cuenta \n2: Ver el balance de una cuenta de banco \n3: Depositar dinero a una cuenta de banco \n4: Retirar dinero de una cuenta de banco \n5: Mostrar todas las cuentas de banco \n6: Ver historial de transaccion de una cuenta de banco\n")
-        user_opcion = str(input("Seleccione la opción que desee"))
+        user_opcion = str(input("Seleccione la opción que desee: "))
         
         if user_opcion == "1":
             print("Crear una cuenta")
-            opcion.crear_cuenta()
+            if cuenta.cuentas_creadas == 0:
+                data_cuenta1 = ""
+                opcion.crear_cuenta(data_cuenta1)
+            elif cuenta.cuentas_creadas == 1:
+                data_cuenta2 = ""
+                opcion.crear_cuenta(data_cuenta2)
         elif user_opcion == "2":
             print("Ver el balance de una cuenta")
             opcion.ver_cuenta_balance()
@@ -179,9 +179,7 @@ class PatitoBank:
             print("La opción que seleccionó es no existe o es inválida")
             PatitoBank.menu_opcion()
         
-    def volver_menu():
-        decision = input("¿Desea volver al menu de inicio?")
-        
+    def volver_menu(decision):
         if decision == "Si" or "SI" or "no":
             PatitoBank.menu_opcion()
         elif decision == "No" or "NO" or "no":
