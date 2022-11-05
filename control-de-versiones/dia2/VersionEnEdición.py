@@ -1,6 +1,39 @@
 ### ---- BACKEND: que todo funcione
 import random
 
+# cuenta de banco
+class cuenta:
+    'Cuentas de banco'
+    cuentas_creadas = 0
+    
+    def __init__(self):
+        print("Hasta ahora se han creado", cuenta.cuentas_creadas, "cuentas")
+        
+        self.codigo = cuenta.cuentas_creadas
+        self.titular = input("Titular de la cuenta: ")
+        self.curp = input("CURP del titular: ")
+        self.numCuenta = input("Numero de cuenta: ")
+        
+        cuenta.cuentas_creadas +=1
+        
+    def balanceCuenta(self):
+        self.balance = int(input("Balance: "))
+        self.transacciones = 0
+    
+    def depositarCuenta(self):
+        self.cantidad = int(input("Dinero a depositar: "))
+        self.fecha = input("Fecha de pago: ")
+        self.concepto = input("Concepto del depósito: ")
+        
+        self.balance+=self.cantidad
+        self.transacciones+=1
+        
+    def mostrarCuenta(self):  
+        print("(", self.codigo, "). Titular:", self.titular, ". Curp:", self.curp, ". Número de Cuenta:", self.numCuenta, ". Balance: $", self.balance, ". Transacciones realizadas: ", self.transacciones)
+    
+    def historialTransacciones(self):  
+        print("(", self.transacciones, ") / Cantidad: ", self.cantidad, "/ Fecha: ", self.fecha, "/ Concepto: ", self.concepto)
+
 # checkers de información para evitar errores en el input del usuario
 class check:
     # se trabajará a profundidad en los checkers en otro día, ya que en este (Dia 2) se va a enfocar en que el programa funcione en sí
@@ -51,7 +84,7 @@ class opcion:
         # D // Mostrar datos de la cuenta creada
         print("Cuenta creada con éxito. \n Nombre:", titular, "\n Curp:", curp, "\n Número de cuenta", numCuenta)
         print("Por favor guarde estos datos en un lugar seguro.")
-        
+
         # C // Volver al menu de opciones
         PatitoBank.volver_menu()
     # Opcion 2
