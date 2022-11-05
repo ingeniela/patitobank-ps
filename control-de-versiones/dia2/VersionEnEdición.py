@@ -21,14 +21,24 @@ class cuenta:
         self.transacciones = 0
     
     def depositarCuenta(self):
+        self.tipo = "Depósito"
         self.cantidad = int(input("Dinero a depositar: "))
         self.fecha = input("Fecha de pago: ")
         self.concepto = input("Concepto del depósito: ")
         
         self.balance+=self.cantidad
         self.transacciones+=1
+    
+    def retirarCuenta(self):
+        self.tipo = "Retiro"
+        self.cantidad = int(input("Dinero a retirar: "))
+        self.fecha = input("Fecha de pago: ")
+        self.concepto = input("Concepto del retiro: ")
         
-    def mostrarCuenta(self):  
+        self.balance-=self.cantidad
+        self.transacciones+=1
+        
+    def mostrarCuentas(self):  
         print("(", self.codigo, "). Titular:", self.titular, ". Curp:", self.curp, ". Número de Cuenta:", self.numCuenta, ". Balance: $", self.balance, ". Transacciones realizadas: ", self.transacciones)
     
     def historialTransacciones(self):  
