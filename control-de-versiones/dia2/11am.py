@@ -3,15 +3,15 @@ import random
 
 # checkers de información para evitar errores en el input del usuario
 class check:
-    def titular():
-        titular = user_input
+    def titular(input):
+        titular2check = input
         # regex formula para verificar que tenga SOLO letras, no numeros ni simbolos
-    def curp():
-        curp = user_input
+    def curp(input):
+        curp2check = input
         # regex formula para verificar que tenga letras Y numeros, no simbolos
         # len(curp) para verificar que sean 18 caracters, no más ni menos de 18
     def numCuenta(input):
-        numCuenta = input
+        numCuenta2check = input
         print("El numero de Cuenta ya ha sido chequeado")
         # regex formula para verificar que solo sean numeros
         # len(numCuenta) para verificar que sean solo 10 numeros, ni mas ni menos
