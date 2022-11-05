@@ -81,7 +81,7 @@ class opcion:
         contrasena = "Ingrese la contraseña especial para acceder a las cuentas"
         
         # B // Mostrar todas las cuentas creadas
-        cuentas_creadas = "cuentas creadas"
+        cuentas_creadas = "Cuentas creadas"
         # C // Volver al menu de opciones
         PatitoBank.volver_menu()
     # Opcion 6
