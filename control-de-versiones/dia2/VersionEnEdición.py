@@ -1,8 +1,10 @@
-# BACKEND: que todo funcione
+### ---- BACKEND: que todo funcione
 import random
 
 # checkers de información para evitar errores en el input del usuario
 class check:
+    # se trabajará a profundidad en los checkers en otro día, ya que en este (Dia 2) se va a enfocar en que el programa funcione en sí
+
     def titular(input):
         titular2check = input
         # regex formula para verificar que tenga SOLO letras, no numeros ni simbolos
@@ -37,13 +39,20 @@ class check:
 class opcion:
     # Opcion 1
     def crear_cuenta():
-        # A // Ingresar a la cuenta
-        titular = input("Nombre y Apellido del titular: ")
+        # A // Crear la cuenta: Nombre del titular
+        titular = input("Ingrese el Nombre y Apellido del titular: ")
+        
+        # B // Crear la cuenta: CURP
         curp = input("Clave Unica de Registro de la Poblacion: ")
         
-        # B // Acceder al balance de la cuenta
+        # C // Numero de cuenta
         numCuenta = str(random.randint(1000000000, 9999999999))
-        print("Su número de cuenta es: ", numCuenta, ". Por favor, guardela en un lugar seguro")
+
+        # D // Mostrar datos de la cuenta creada
+        print("Cuenta creada con éxito. \n Nombre:", titular, "\n Curp:", curp, "\n Número de cuenta", numCuenta)
+        print("Por favor guarde estos datos en un lugar seguro.")
+        
+        # C // Volver al menu de opciones
         PatitoBank.volver_menu()
     # Opcion 2
     def ver_cuenta_balance():
@@ -96,7 +105,7 @@ class opcion:
         # D // Volver al menu de opciones
         PatitoBank.volver_menu()
         
-# FRONTEND: Que todo se vea bonito
+### ---- FRONTEND: Que todo se vea bonito
 class PatitoBank:
     def bienvenida():
         print("¡Sea bienvenido a Patito Bank!\n")
@@ -140,6 +149,6 @@ class PatitoBank:
             PatitoBank.volver_menu()
 
 
-# SET UP
+### ---- SET UP
 PatitoBank.bienvenida()
 PatitoBank.menu_opcion()
