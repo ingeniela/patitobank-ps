@@ -43,7 +43,7 @@ class opcion:
         
         # B // Acceder al balance de la cuenta
         numCuenta = str(random.randint(1000000000, 9999999999))
-        print("Su numero de cuenta es: ", numCuenta, ". Por favor, guardela en un lugar seguro")
+        print("Su número de cuenta es: ", numCuenta, ". Por favor, guardela en un lugar seguro")
         PatitoBank.volver_menu()
     # Opcion 2
     def ver_cuenta_balance():
