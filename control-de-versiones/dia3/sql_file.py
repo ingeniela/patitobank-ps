@@ -46,7 +46,12 @@ class Transaccion(Base):
     tipo=Column(String, nullable=True, unique=False)
     monto=Column(Integer(), nullable=True, unique=False)
     fecha=Column(DateTime(),default=datetime.utcnow)
-    concepto=Column(String, nullable=True, unique=False)
+    concepto=Column(String(25), nullable=True, unique=False)
 
     def __repr__(self):
         return f"< Numero de Cuenta = {self.numCuenta} / Balance = {self.balance} / Tipo = {self.tipo}  / Monto = {self.monto}  / Fecha = {self.fecha} / Concepto = {self.concepto} >"
+
+    def dataTransaccion(self):
+        return f"< Numero de Cuenta = {self.numCuenta} / Tipo = {self.tipo}  / Monto = {self.monto}  / Fecha = {self.fecha} / Concepto = {self.concepto} >"
+    def soloBalance(self):
+        return self.balance
