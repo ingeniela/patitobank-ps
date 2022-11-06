@@ -1,6 +1,7 @@
-### ---- BACKEND: que todo funcione
 import random
 from sql_file import *
+
+### ---- BACKEND: que todo funcione
 
 # SQL ALCHEMY
 local_cuentas = database_cuentas(bind=engine_cuentas)
@@ -37,9 +38,21 @@ def crear_cuenta():
     PatitoBank.volver_menu(pregunta)
 
 # Opcion 2
-def ver_cuenta_balance(data):
-    # A // ingresar a la cuenta
-    print("x")
+def ver_cuenta_balance():
+    # A // Ingresar numero de cuenta para ver el balance
+    numCuenta_input = int(input("Coloque el numero de cuenta del usuario: "))
+    buscar_numCuenta = local_cuentas.query(Cuenta).filter(Cuenta.numCuenta == numCuenta_input).first()
+
+    print("Se ha encontrado la siguiente cuenta: ")
+    print(buscar_numCuenta)
+    # Encontrar balance de la cuenta
+    print("El balance de esa cuenta es: ")
+    transacciones = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).order_by(
+        Transaccion.id.desc()).first()
+    print(transacciones.soloBalance())
+    # C // Volver al menu de opciones
+    pregunta = input("¿Desea volver al inicio?")
+    PatitoBank.volver_menu(pregunta)
 
 # Opcion 3
 def depositar_dinero():
@@ -53,10 +66,17 @@ def depositar_dinero():
     # B // Ingresar datos del depósito (Cantidad / Fecha y Hora / Concepto)
     monto_input = int(input("Cuando dinero desea transferir: "))
     concepto_input = str(input("Coloque el concepto de esta transaccion: "))
-    nueva_transaccion = Transaccion(numCuenta=numCuenta_input, balance=+monto_input, tipo="Deposito", monto=monto_input,
+
+    # Agregar balance nuevo
+    transacciones = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).order_by(
+        Transaccion.id.desc()).first()
+    nuevo_balance = transacciones.soloBalance() + monto_input
+    nueva_transaccion = Transaccion(numCuenta=numCuenta_input, balance=nuevo_balance, tipo="Deposito",
+                                    monto=monto_input,
                                     concepto="concepto_input")
     print("Transaccion realizada con éxito. Información:")
-    print(nueva_transaccion)
+    print(nueva_transaccion.dataTransaccion())
+
     local_transacciones.add(nueva_transaccion)
     local_transacciones.commit()
     # C // Volver al menu de opciones
@@ -65,12 +85,30 @@ def depositar_dinero():
 
 # Opcion 4
 def retirar_dinero():
-    # A // Ingresar numero de cuenta a retirar dinero
-    titular = input("Nombre y Apellido del titular: ")
+    # A // Ingresar numero de cuenta a depositar dinero
+    numCuenta_input = int(input("Coloque el numero de cuenta del usuario: "))
+    buscar_numCuenta = local_cuentas.query(Cuenta).filter(Cuenta.numCuenta == numCuenta_input).first()
 
-    # B // Ingresar datos del retiro (Cantidad / Fecha y Hora / Concepto)
-    print("Retirar el monto, tan tan tan")
+    print("Se ha encontrado la siguiente cuenta: ")
+    print(buscar_numCuenta)
 
+    # B // Ingresar datos del depósito (Cantidad / Fecha y Hora / Concepto)
+    monto_input = int(input("Cuando dinero desea retirar: "))
+    concepto_input = str(input("Coloque el concepto de este retiro: "))
+
+    # Agregar balance nuevo
+    transacciones = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).order_by(
+        Transaccion.id.desc()).first()
+    nuevo_balance = transacciones.soloBalance() - monto_input
+    # if transacciones.soloBalance() < monto_input_
+    nueva_transaccion = Transaccion(numCuenta=numCuenta_input, balance=nuevo_balance, tipo="Deposito",
+                                    monto=monto_input,
+                                    concepto="concepto_input")
+    print("Transaccion realizada con éxito. Información:")
+    print(nueva_transaccion.dataTransaccion())
+
+    local_transacciones.add(nueva_transaccion)
+    local_transacciones.commit()
     # C // Volver al menu de opciones
     pregunta = input("¿Desea volver al inicio?")
     PatitoBank.volver_menu(pregunta)
