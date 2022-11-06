@@ -7,23 +7,46 @@ import os
 ### ---- TECNICO DE LA BASE DE DATOS
 ### Direccion de la maquina
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
-CONECCION_LINK = "sqlite:///"+os.path.join(BASE_DIR, 'BaseDeDatos.db')
-
-### Base declarativa, máquina, sesión del usuario
 Base = declarative_base()
-Engine = create_engine(CONECCION_LINK)
-Session = sessionmaker()
 
+### Link
+Link1 = "sqlite:///"+os.path.join(BASE_DIR, 'db_cuenta.db')
+Link2 = "sqlite:///"+os.path.join(BASE_DIR, 'db_transaccion.db')
+
+### Engine
+engine_cuentas = create_engine(Link1)
+engine_transacciones = create_engine(Link2)
+
+### Session maker
+database_cuentas = sessionmaker(engine_cuentas)
+database_transacciones = sessionmaker(engine_transacciones)
 
 ### ---- CLASES PARA LA BASE DE DATOS
-### Clase de Usuario
+### Clase de Cuenta
 class Cuenta(Base):
     __tablename__= "cuentas"
     id=Column(Integer(), primary_key=True)
     titular=Column(String(25),nullable=False, unique=True)
     curp=Column(String(20), nullable=False, unique=True)
     numCuenta=Column(Integer(), nullable=False, unique=True)
-    date_created=Column(DateTime(),default=datetime.utcnow)
+    fecha_creacion=Column(DateTime(),default=datetime.utcnow)
 
     def __repr__(self):
         return f"< Titular = {self.titular} / Curp = {self.curp} / Numero de cuenta = {self.numCuenta} >"
+
+    def data_basico(self):
+        return f"< Titular = {self.titular} / Numero de cuenta = {self.numCuenta} >"
+
+### Clase de Transaccion
+class Transaccion(Base):
+    __tablename__= "transacciones"
+    id=Column(Integer(), primary_key=True)
+    numCuenta=Column(Integer(), nullable=False, unique=False)
+    balance=Column(Integer(), nullable=False, unique=False)
+    tipo=Column(String, nullable=True, unique=False)
+    monto=Column(Integer(), nullable=True, unique=False)
+    fecha=Column(DateTime(),default=datetime.utcnow)
+    concepto=Column(String, nullable=True, unique=False)
+
+    def __repr__(self):
+        return f"< Numero de Cuenta = {self.numCuenta} / Balance = {self.balance} / Tipo = {self.tipo}  / Monto = {self.monto}  / Fecha = {self.fecha} / Concepto = {self.concepto} >"
