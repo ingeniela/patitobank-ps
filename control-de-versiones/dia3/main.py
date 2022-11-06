@@ -1,12 +1,14 @@
 ### ---- BACKEND: que todo funcione
 import random
-from sql_file import Cuenta, Session, Engine
+from sql_file import *
 
 # SQL ALCHEMY
-local_session = Session(bind=Engine)
+local_cuentas = database_cuentas(bind=engine_cuentas)
+local_transacciones = database_transacciones(bind=engine_transacciones)
 # database
 
 # opciones que podria escoger el usuario
+# Opcion 1
 def crear_cuenta():
     # A // Crear la cuenta: Nombre del titular
     titular_input = str(input("Coloque el nombre del titular: "))
@@ -15,10 +17,15 @@ def crear_cuenta():
     curp_input = str(input("Coloque el CURP: "))
 
     # C // Generar numero de cuenta
-    number_random = int(random.randint(1000000000, 9999999999))
-    nueva_cuenta = Cuenta(titular=titular_input, curp=curp_input, numCuenta=number_random)
-    local_session.add(nueva_cuenta)
-    local_session.commit()
+    generar_numero = int(random.randint(1000000000, 9999999999))
+    nueva_cuenta = Cuenta(titular=titular_input, curp=curp_input, numCuenta=generar_numero)
+    nuevo_balance = Transaccion(numCuenta=generar_numero, balance=0, tipo="Cuenta creada")
+
+    # Agregar a la base de datos
+    local_cuentas.add(nueva_cuenta)
+    local_cuentas.commit()
+    local_transacciones.add(nuevo_balance)
+    local_transacciones.commit()
 
     # D // Mostrar datos de la cuenta creada
     print("\n¡Cuenta creada con éxito!\n")
@@ -32,19 +39,26 @@ def crear_cuenta():
 # Opcion 2
 def ver_cuenta_balance(data):
     # A // ingresar a la cuenta
-
+    print("x")
 
 # Opcion 3
 def depositar_dinero():
     # A // Ingresar numero de cuenta a depositar dinero
-    numCuenta_input = int(input("Coloque el numero de cuenta del Usuario: "))
-    buscar_numCuenta = local_session.query(Cuenta).filter(Cuenta.numCuenta == numCuenta_input).first()
+    numCuenta_input = int(input("Coloque el numero de cuenta del usuario: "))
+    buscar_numCuenta = local_cuentas.query(Cuenta).filter(Cuenta.numCuenta == numCuenta_input).first()
+
     print("Se ha encontrado la siguiente cuenta: ")
     print(buscar_numCuenta)
 
     # B // Ingresar datos del depósito (Cantidad / Fecha y Hora / Concepto)
-    print("Realizar el monto, tan tan tan")
-
+    monto_input = int(input("Cuando dinero desea transferir: "))
+    concepto_input = str(input("Coloque el concepto de esta transaccion: "))
+    nueva_transaccion = Transaccion(numCuenta=numCuenta_input, balance=+monto_input, tipo="Deposito", monto=monto_input,
+                                    concepto="concepto_input")
+    print("Transaccion realizada con éxito. Información:")
+    print(nueva_transaccion)
+    local_transacciones.add(nueva_transaccion)
+    local_transacciones.commit()
     # C // Volver al menu de opciones
     pregunta = input("¿Desea volver al inicio?")
     PatitoBank.volver_menu(pregunta)
@@ -67,9 +81,9 @@ def mostrar_cuentas():
     contrasena = input("Ingrese la contraseña especial para acceder a las cuentas")
 
     # B // Mostrar todas las cuentas creadas
-    cuentas = local_session.query(Cuenta).all()
+    cuentas = local_cuentas.query(Cuenta).all()
     for cuenta in cuentas:
-        print(cuenta)
+        print(cuenta.data_basico())
 
     # C // Volver al menu de opciones
     pregunta = input("¿Desea volver al inicio?")
@@ -78,14 +92,20 @@ def mostrar_cuentas():
 # Opcion 6
 def ver_cuenta_historial():
     # A // Ingresar contraseña especial
-    contrasena = "Ingrese la contraseña especial para mostrar el historial de una cuenta"
+    contrasena = input("Ingrese la contraseña especial para acceder a las cuentas")
 
     # B // Ingresar numero de cuenta
-
-    # C // Ingresar numero de cuenta
-
+    numCuenta_input = int(input("Coloque el numero de cuenta: "))
+    print("Se ha entcontrado la siguiente cuenta")
+    buscar_numCuenta = local_cuentas.query(Cuenta).filter(Cuenta.numCuenta == numCuenta_input).first()
+    print(buscar_numCuenta)
+    # C // Ver historial numero de cuenta
+    transacciones = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).all()
+    for transaccione in transacciones:
+        print(transaccione)
     # D // Volver al menu de opciones
-    PatitoBank.volver_menu()
+    pregunta = input("¿Desea volver al inicio?")
+    PatitoBank.volver_menu(pregunta)
 
 
 ### ---- FRONTEND: Que todo se vea bonito
