@@ -3,12 +3,15 @@ import re
 from sql_file import *
 
 ## TAREAS SG:
-# OP2: mostrar fecha actual y hacer calculos del prestamo +30 dias apartir de hoy en datetime.now()
-# OP3-4: Guardar fecha actual sin errores
-# OP5: Mostrar cuentas, pero mostrar aviso sino hay cuentas creadas
-# OP6: No mostrar la primera transaccion (creacion de cuenta)
+# PRINCIPAL
+# OP3-4: Guardar fecha actual al hacer una transaccion (buscar en versiones anteriores) -> editar base de datos y hacer que no sea default
+# OP6: No mostrar la primera transaccion (creacion de cuenta) -> quizá eliminarla cuando ya se realizó la primera transaccion
 # Aceptar responder con "Si" "si" y "SI" (lo mismo con NO, no, No)
-# Limpiar variables/funciones
+
+# SECUNDARIO
+# Corregir "redirigido a" o qué, elimina eso
+# Corregir Output colocado (agregar Mayusculas, acentos y \n donde sea necesario)
+# OP2: Mostrar fecha actual y hacer calculos del prestamo +30 dias a partir de hoy en datetime.now()
 
 ### ------------ BACKEND: que todo funcione ###
 
@@ -277,37 +280,49 @@ def mostrar_cuentas():
     modo_admin(contrasena, "5")
 
     # B // Mostrar todas las cuentas creadas
-    print("\n Cuentas creadas hasta ahora")
-    cuentas = local_cuentas.query(Cuenta).all()
-    for cuenta in cuentas:
-        print(cuenta.data_basico())
+    cantidad_cuentas = local_cuentas.query(Cuenta).count()
+    if cantidad_cuentas == 0:
+        print("No hay cuentas en la base de datos")
+    if cantidad_cuentas != 0:
+        print("\nCuentas creadas hasta ahora")
+        cuentas = local_cuentas.query(Cuenta).all()
+        for cuenta in cuentas:
+            print(cuenta.data_basico())
 
-    # C // Opciones:
-    opciones_avanzadas = int(input("\nSi desea acceder a las opciones avanzadas, coloque 1. Sino, coloque 2."))
+        print("Se han creado", cantidad_cuentas, "cuentas hasta ahora")
 
-    if opciones_avanzadas == 1:
-        print(
-            "1. Eliminar todas las cuentas de banco creadas hasta ahora. \n 2. Eliminar todas las transacciones creadas hasta ahora")
-        seleccionar = int(input("¿Que desea hacer?"))
+        # C // Opciones:
+        opciones_avanzadas = str(input("\n¿Desea entrar a las opciones avanzadas? (Si o No): "))
 
-        if seleccionar == 1:
-            try:
-                eliminar_cuentas = local_cuentas.query(Cuenta).delete()
-                local_cuentas.commit()
-                print("Se han eliminado todas las cuentas de la base de datos")
-                pass
-            except:
-                local_cuentas.rollback()
-                pass
-        elif seleccionar == 2:
-            try:
-                eliminar_transacciones = local_transacciones.query(Transaccion).delete()
-                local_transacciones.commit()
-                print("Se han eliminado todas las transacciones de la base de datos")
-                pass
-            except:
-                local_transacciones.rollback()
-                pass
+        if opciones_avanzadas == "Si":
+            print("1. Eliminar todas las cuentas de banco creadas hasta ahora. \n2. Eliminar todas las transacciones creadas hasta ahora")
+            seleccionar = int(input("¿Que desea hacer?"))
+
+            if seleccionar == 1:
+                try:
+                    eliminar_cuentas = local_cuentas.query(Cuenta).delete()
+                    local_cuentas.commit()
+                    print("Se han eliminado todas las cuentas de la base de datos")
+                    pass
+                except:
+                    local_cuentas.rollback()
+                    print("No se han encontrado cuentas en la base de datos")
+                    pass
+            elif seleccionar == 2:
+                try:
+                    eliminar_transacciones = local_transacciones.query(Transaccion).delete()
+                    local_transacciones.commit()
+                    print("Se han eliminado todas las transacciones de la base de datos")
+                    pass
+                except:
+                    local_transacciones.rollback()
+                    print("No se han encontrado transacciones en la base de datos")
+                    pass
+
+            PatitoBank.volver_opcion("5")
+        elif opciones_avanzadas == "No":
+            PatitoBank.volver_opcion("5")
+
 
     ## C // Volver al menu de opciones
     PatitoBank.volver("5")
@@ -324,9 +339,17 @@ def ver_cuenta_historial():
     Check.existe_numCuenta(numCuenta_input, "6") # Si existe la cuenta
 
     # C // Ver historial numero de cuenta
-    transacciones = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).all()
-    for transaccione in transacciones:
-        print(transaccione)
+    cantidad_transacciones = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).count()
+
+    if cantidad_transacciones == 0:
+        print("No hay cuentas en la base de datos")
+    if cantidad_transacciones != 0:
+        print("\nTransacciones realizadas hasta ahora")
+        transacciones = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).all()
+        for transaccione in transacciones:
+            print(transaccione)
+
+        print("Se han creado", cantidad_transacciones, "transacciones hasta ahora")
 
     ## D // Volver al menu de opciones
     PatitoBank.volver("6")
