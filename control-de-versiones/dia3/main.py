@@ -194,7 +194,7 @@ def mostrar_cuentas():
     print("\n Cuentas creadas hasta ahora")
     cuentas = local_cuentas.query(Cuenta).all()
     for cuenta in cuentas:
-        print(cuenta.data_basico())
+        print(cuenta.dataBasico())
 
     # C // Opciones:
     opciones_avanzadas = int(input("\nSi desea acceder a las opciones avanzadas, coloque 1. Sino, coloque 2."))

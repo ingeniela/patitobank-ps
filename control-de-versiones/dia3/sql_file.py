@@ -29,12 +29,12 @@ class Cuenta(Base):
     titular=Column(String(25),nullable=False, unique=True)
     curp=Column(String(20), nullable=False, unique=True)
     numCuenta=Column(Integer(), nullable=False, unique=True)
-    fecha_creacion=Column(DateTime(),default=datetime.utcnow)
+    fecha_creacion=Column(DateTime(),default=datetime.now())
 
     def __repr__(self):
         return f"< Titular = {self.titular} / Curp = {self.curp} / Numero de cuenta = {self.numCuenta} >"
 
-    def data_basico(self):
+    def dataBasico(self):
         return f"< Titular = {self.titular} / Numero de cuenta = {self.numCuenta} >"
 
 ### Clase de Transaccion
@@ -43,9 +43,9 @@ class Transaccion(Base):
     id=Column(Integer(), primary_key=True)
     numCuenta=Column(Integer(), nullable=False, unique=False)
     balance=Column(Integer(), nullable=False, unique=False)
-    tipo=Column(String, nullable=True, unique=False)
+    tipo=Column(String(10), nullable=True, unique=False)
     monto=Column(Integer(), nullable=True, unique=False)
-    fecha=Column(DateTime(),default=datetime.utcnow)
+    fecha=Column(DateTime(),default=datetime.now())
     concepto=Column(String(25), nullable=True, unique=False)
 
     def __repr__(self):
