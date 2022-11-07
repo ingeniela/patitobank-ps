@@ -1,12 +1,14 @@
 import random
 import re
 from sql_file import *
-from sqlalchemy import exc
 
 ## TAREAS SG:
-# Colocar los checkers, que funcionen bien los nombres, curp, cuando se hace input un numero de cuenta y asi
-# Que hacer en caso de que el numero de cuenta sea incorrecto
-# Mejorar el Output
+# OP2: mostrar fecha actual y hacer calculos del prestamo +30 dias apartir de hoy en datetime.now()
+# OP3-4: Guardar fecha actual sin errores
+# OP5: Mostrar cuentas, pero mostrar aviso sino hay cuentas creadas
+# OP6: No mostrar la primera transaccion (creacion de cuenta)
+# Aceptar responder con "Si" "si" y "SI" (lo mismo con NO, no, No)
+# Limpiar variables/funciones
 
 ### ------------ BACKEND: que todo funcione ###
 
@@ -30,7 +32,7 @@ class SQLFuncion:
 class Check:
     def titular(input, opcion):
         titular_input = input
-        nombre_apellido = "([a-zA-Z]{2,}\s[a-zA-Z]{1,}'?-?[a-zA-Z]{2,}\s?([a-zA-Z]{1,})?)"
+        nombre_apellido = "([a-zñáéíóúA-ZÑÁÉÍÓÚ]{2,}\s[a-zñáéíóúA-ZÑÁÉÍÓÚ]{1,}'?-?[a-zñáéíóúA-ZÑÁÉÍÓÚ]{2,}\s?([a-zñáéíóúA-ZÑÁÉÍÓÚ]{1,})?)"
 
         if (re.search(nombre_apellido, titular_input)):
             pass
@@ -42,23 +44,39 @@ class Check:
         titular_input = input
         largo = len(titular_input)
 
-        if (re.search(letrasMayus_numeros, titular_input)) and largo == 18:
-            pass
+        if largo != 18:
+            print("El CURP debe tener 18 caracteres en total\n Por favor, verifique su respuesta e intente otra vez")
+            PatitoBank.volver_opcion(opcion)
         else:
-            print("Por favor, recuerde que su CURP solo debe contener letras en Mayusculas y numeros, no se aceptan simbolos \n Coloque sus datos una vez más \n")
+            if (re.search(letrasMayus_numeros, titular_input)):
+                pass
+            else:
+                print("Recuerde que el CURP contiene letras en Mayusculas y numeros\n Por favor, verifique su respuesta e intente otra vez")
+                PatitoBank.volver_opcion(opcion)
+    def existe_curp(curp_input, opcion):
+        buscar_curp = local_cuentas.query(Cuenta).filter(Cuenta.curp == curp_input).first()
+        if buscar_curp == None:
+            pass
+        elif buscar_curp != None:
+            print("El CURP que usted colocó ya esta asociado a una cuenta")
             PatitoBank.volver_opcion(opcion)
     def numCuenta(input, opcion):
         solo_numeros = "[0-9]"
         numCuenta_input = input
         largo = len(numCuenta_input)
 
-        if (re.search(solo_numeros, numCuenta_input)) and largo == 10:
-            pass
-        else:
-            print("Por favor, recuerde que su Numero de Cuenta solo debe contener numeros, no se aceptan letra simbolos \n Coloque sus datos una vez más \n")
+        if largo != 10:
+            print("El Número de Cuenta debe contener 10 numeros\n Por favor, verifique su respuesta e intente otra vez")
             PatitoBank.volver_opcion(opcion)
-    def existe_numCuenta(input, opcion):
-        buscar_numCuenta = input
+        else:
+            if (re.search(solo_numeros, numCuenta_input)) and largo == 10:
+                pass
+            else:
+                print("Recuerde que el Numero de cuenta solo contiene numeros\n Por favor, verifique su respuesta e intente otra vez")
+                PatitoBank.volver_opcion(opcion)
+
+    def existe_numCuenta(numCuenta_input, opcion):
+        buscar_numCuenta = local_cuentas.query(Cuenta).filter(Cuenta.numCuenta == numCuenta_input).first()
         if buscar_numCuenta == None:
             print("El numero de cuenta que usted colocó no existe")
             PatitoBank.volver_opcion(opcion)
@@ -80,7 +98,8 @@ def pedir_prestamo(monto_input, numCuenta_input):
     segundos_restantes = diferencia.total_seconds()
     dias_restantes = int(segundos_restantes / 86400) * -1
 
-    # SG: if dias_restantes > 200: (agregar que no se pueda hacer)
+    if dias_restantes > 200:
+        print("Tiene más de 200 dias para realizar este pago")
 
     # Tasa de interes segun el monto
     interesXmonto = 0.5 # 10% de interes por el monto que se realice
@@ -114,7 +133,6 @@ def pedir_prestamo(monto_input, numCuenta_input):
     elif transaccion == "No":
         print("Ha cancelado este prestamo, por lo que no se realizará")
         pass
-
 def calcular_prestamo(monto_input):
     interesFecha = 0.08 #8% por 30 dias
     interesMonto = 0.05 #5% por el prestamo que se pida
@@ -123,6 +141,15 @@ def calcular_prestamo(monto_input):
     interesX90dias = int((interesFecha * 3 + interesMonto)*100)
 
     print("Si lo paga en: / 30 dias: %", interesX30dias , "de interes / 60 días: %", interesX60dias, "de interes / 90 dias: %", interesX90dias, "de interes")
+def modo_admin(input, opcion):
+    contrasena = input
+    respuesta = "PatosPatos"
+
+    if contrasena == respuesta:
+        pass
+    else:
+        print("Contraseña de Administrador incorrecta")
+        PatitoBank.volver_opcion(opcion)
 
 ### --- OPCIONES DE SELECCION
 # Opcion 1: Crear una cuenta
@@ -135,12 +162,15 @@ def crear_cuenta():
     ## B// Curp: Ingresar Clave Unica de Registro Poblacional
     curp_input = str(input("Coloque el CURP: "))
     Check.curp(curp_input, "1")
+    Check.existe_curp(curp_input, "1")
+
     ## C // Generar Numero de cuenta de 10 dígitos
     generar_numCuenta = int(random.randint(1000000000, 9999999999))
     nuevo_numCuenta = str(generar_numCuenta)
 
     nueva_cuenta = Cuenta(titular=titular_input, curp=curp_input, numCuenta=nuevo_numCuenta)
     nuevo_balance = Transaccion(numCuenta=nuevo_numCuenta, balance=0, tipo="Cuenta creada")
+
     # Agregar a la base de datos
     SQLFuncion.añadir("cuenta", nueva_cuenta)
     SQLFuncion.añadir("transaccion", nuevo_balance)
@@ -152,14 +182,11 @@ def crear_cuenta():
     PatitoBank.volver("1")
 
 # Opcion 2: Ver el balance de una cuenta
-def ver_cuenta_balance(): # 6069014493
+def ver_cuenta_balance():
     ## A // Ingresar numero de cuenta para ver el balance
     numCuenta_input = str(input("Coloque el numero de cuenta del usuario: "))
-    Check.numCuenta(numCuenta_input, "2")
-
-    # Verificar existencia del numero de cuenta
-    buscar_numCuenta = local_cuentas.query(Cuenta).filter(Cuenta.numCuenta == numCuenta_input).first()
-    Check.existe_numCuenta(buscar_numCuenta, "2")
+    Check.numCuenta(numCuenta_input, "2") # Si los datos son correctos
+    Check.existe_numCuenta(numCuenta_input, "2") # Si existe la cuenta
 
     ## B // Mostrar balance de la cuenta
     cuenta_balance = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).order_by(
@@ -188,11 +215,9 @@ def ver_cuenta_balance(): # 6069014493
 # Opcion 3
 def depositar_dinero():
     # A // Ingresar numero de cuenta a depositar dinero
-    numCuenta_input = int(input("Coloque el numero de cuenta del usuario: "))
-    # mostrar datos de la cuenta
-    buscar_numCuenta = local_cuentas.query(Cuenta).filter(Cuenta.numCuenta == numCuenta_input).first()
-    print("El número de cuenta colocado está asociado a esta cuenta:: ", buscar_numCuenta)
-    # SG: seleccionar si el usuario es correcto o no
+    numCuenta_input = str(input("Coloque el numero de cuenta del usuario: "))
+    Check.numCuenta(numCuenta_input, "3") # Si los datos son correctos
+    Check.existe_numCuenta(numCuenta_input, "3") # Si existe la cuenta
 
     # B // Ingresar datos del depósito (Monto / Fecha y Hora / Concepto)
     monto_input = int(input("¿Cuanto dinero desea depositar?: $"))
@@ -219,11 +244,9 @@ def depositar_dinero():
 # Opcion 4
 def retirar_dinero():
     # A // Ingresar numero de cuenta a depositar dinero
-    numCuenta_input = int(input("Coloque el numero de cuenta del usuario: "))
-    # mostrar datos de la cuenta
-    buscar_numCuenta = local_cuentas.query(Cuenta).filter(Cuenta.numCuenta == numCuenta_input).first()
-    print("El número de cuenta colocado está asociado a esta cuenta:: ", buscar_numCuenta)
-    # SG: seleccionar si el usuario es correcto o no
+    numCuenta_input = str(input("Coloque el numero de cuenta del usuario: "))
+    Check.numCuenta(numCuenta_input, "4") # Si los datos son correctos
+    Check.existe_numCuenta(numCuenta_input, "4") # Si existe la cuenta
 
     # B // Ingresar datos del depósito (Monto / Fecha y Hora / Concepto)
     monto_input = int(input("¿Cuanto dinero desea retirar?: $"))
@@ -234,7 +257,7 @@ def retirar_dinero():
     # Agregar balance nuevo
     transacciones = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).order_by(
         Transaccion.id.desc()).first()
-    nuevo_balance = transacciones.soloBalance() + monto_input
+    nuevo_balance = transacciones.soloBalance() - monto_input
     nueva_transaccion = Transaccion(numCuenta=numCuenta_input,
                                     balance=nuevo_balance,
                                     tipo="Retiro",
@@ -250,7 +273,8 @@ def retirar_dinero():
 # Opcion 5
 def mostrar_cuentas():
     # A // Ingresar contraseña especial
-    modo_admin = input("Ingrese la contraseña especial para acceder a este espacio: ")
+    contrasena = input("Ingrese la contraseña especial para acceder a este espacio: ")
+    modo_admin(contrasena, "5")
 
     # B // Mostrar todas las cuentas creadas
     print("\n Cuentas creadas hasta ahora")
@@ -291,14 +315,13 @@ def mostrar_cuentas():
 # Opcion 6
 def ver_cuenta_historial():
     # A // Ingresar contraseña especial
-    modo_admin = input("Ingrese la contraseña especial para acceder a este espacio: ")
+    contrasena = input("Ingrese la contraseña especial para acceder a este espacio: ")
+    modo_admin(contrasena, "6")
 
-    # B // Ingresar numero de cuenta
-    numCuenta_input = int(input("Coloque el numero de cuenta: "))
-    print("Se ha entcontrado la siguiente cuenta")
-    # buscar transacciones de la cuenta
-    buscar_numCuenta = local_cuentas.query(Cuenta).filter(Cuenta.numCuenta == numCuenta_input).first()
-    print(buscar_numCuenta)
+    # B // Ingresar numero de cuenta revisar historial
+    numCuenta_input = str(input("Coloque el numero de cuenta del usuario: "))
+    Check.numCuenta(numCuenta_input, "6") # Si los datos son correctos
+    Check.existe_numCuenta(numCuenta_input, "6") # Si existe la cuenta
 
     # C // Ver historial numero de cuenta
     transacciones = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).all()
