@@ -3,7 +3,7 @@ from sql_file import *
 
 ## TAREAS (dejé otras en el archivo con el nombre de SG):
 # Colocar los checkers, que funcionen bien los nombres, curp, cuando se hace input un numero de cuenta y asi
-# Que hacer en caso de que el numero de cuenta sea incorrecto
+# Que hacer en caso de que el numero de cuenta sea incorrecto/no exista?
 # Mejorar el Output para que se vea bonito todo
 
 ### ------------ BACKEND: que todo funcione ###
