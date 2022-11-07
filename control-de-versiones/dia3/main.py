@@ -1,12 +1,13 @@
+### ---- BACKEND: que todo funcione
 import random
 from sql_file import *
-
-### ---- BACKEND: que todo funcione
 
 # SQL ALCHEMY
 local_cuentas = database_cuentas(bind=engine_cuentas)
 local_transacciones = database_transacciones(bind=engine_transacciones)
 # database
+
+### --- OTROS
 
 # opciones que podria escoger el usuario
 # Opcion 1
@@ -50,7 +51,43 @@ def ver_cuenta_balance():
     transacciones = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).order_by(
         Transaccion.id.desc()).first()
     print(transacciones.soloBalance())
-    # C // Volver al menu de opciones
+    # C // Pedir préstamo
+    user_input = int(input("Cuanto dinero desea prestar"))
+    # Seleccionar mes a pagar
+    ano = int(input('En que año va a pagar: '))
+    mes = int(input('En que mes lo va a pagar: '))
+    dia = int(input('En que dia lo va a pagar: '))
+    # Tomar la fecha actual
+    fecha_input = datetime(ano, mes, dia, 12, 0, 0)
+    fecha_ahora = datetime.now()
+    # Tasa de interes segun el monto
+    interesXmonto = 0.12  # 12% de interes por el monto que se realice
+    # Tasa de Interés según los dias faltantes
+    diff = datetime.now() - fecha_input
+    segundos_restantes = diff.total_seconds()
+    dias_restantes = int(segundos_restantes / 86400) * -1
+    interesXfecha = (dias_restantes * 0.0026)  # 8% de interes por cada 30 dias
+    # Interés completo
+    interesXprestamo = (interesXmonto + interesXfecha)  # cuanto porcentaje es en total
+    dinero_total = int((user_input * interesXprestamo) + user_input)
+    print("Se le va a realizar un prestamo de: ", user_input, ". Debe pagarlo en", dias_restantes, "dias")
+    print("Interes a pagar en total: ", interesXprestamo)
+    # print("/ Interes por el monto", interesXmonto, "/ Interes por la fecha", interesXfecha)
+    print("Es decir, que debe pagar: ", dinero_total, "Pesos en total")
+
+    # Agregar balance nuevo
+    transacciones = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).order_by(
+        Transaccion.id.desc()).first()
+    nuevo_balance = transacciones.soloBalance() + dinero_total
+    nueva_transaccion = Transaccion(numCuenta=numCuenta_input, balance=nuevo_balance, tipo="Préstamo",
+                                    monto=dinero_total,
+                                    concepto="Prestamo realizado por PatitoBank")
+    print("Transaccion realizada con éxito. Información:")
+    print(nueva_transaccion.dataTransaccion())
+
+    local_transacciones.add(nueva_transaccion)
+    local_transacciones.commit()
+    # D // Volver al menu de opciones
     pregunta = input("¿Desea volver al inicio?")
     PatitoBank.volver_menu(pregunta)
 
@@ -73,7 +110,7 @@ def depositar_dinero():
     nuevo_balance = transacciones.soloBalance() + monto_input
     nueva_transaccion = Transaccion(numCuenta=numCuenta_input, balance=nuevo_balance, tipo="Deposito",
                                     monto=monto_input,
-                                    concepto="concepto_input")
+                                    concepto=concepto_input)
     print("Transaccion realizada con éxito. Información:")
     print(nueva_transaccion.dataTransaccion())
 
@@ -103,7 +140,7 @@ def retirar_dinero():
     # if transacciones.soloBalance() < monto_input_
     nueva_transaccion = Transaccion(numCuenta=numCuenta_input, balance=nuevo_balance, tipo="Deposito",
                                     monto=monto_input,
-                                    concepto="concepto_input")
+                                    concepto=concepto_input)
     print("Transaccion realizada con éxito. Información:")
     print(nueva_transaccion.dataTransaccion())
 
@@ -123,9 +160,22 @@ def mostrar_cuentas():
     for cuenta in cuentas:
         print(cuenta.data_basico())
 
+    # C // Opciones:
+    pregunta = int(input("Presione 1. Para eliminar todas las cuentas. Presione 2. Para volver al menu de inicio"))
+
+    if pregunta == 1:
+        try:
+            eliminar_cuentas = local_cuentas.query(Cuenta).delete()
+            local_cuentas.commit()
+            print("Se han eliminado todas las cuentas de la base de datos")
+            pass
+        except:
+            local_cuentas.rollback()
+            pass
+    elif pregunta == 2:
+        PatitoBank.volver_menu("Si")
     # C // Volver al menu de opciones
-    pregunta = input("¿Desea volver al inicio?")
-    PatitoBank.volver_menu(pregunta)
+    PatitoBank.volver_menu("Si")
 
 # Opcion 6
 def ver_cuenta_historial():
@@ -146,7 +196,7 @@ def ver_cuenta_historial():
     PatitoBank.volver_menu(pregunta)
 
 
-### ---- FRONTEND: Que todo se vea bonito
+### ---- FRONTEND: Quetodo se vea bonito
 class PatitoBank:
     def bienvenida(self):
         print("¡Sea bienvenido a Patito Bank!\n")
