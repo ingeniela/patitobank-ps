@@ -1,11 +1,13 @@
 import random
 import re
-from sql_file import *
+from SQLArchivo import *
+from datetime import datetime
+
+#5811767397
+#1090417076
 
 ## TAREAS SG:
 # PRINCIPAL
-# OP3-4: Guardar fecha actual al hacer una transaccion (buscar en versiones anteriores) -> editar base de datos y hacer que no sea default
-# OP6: No mostrar la primera transaccion (creacion de cuenta) -> quizá eliminarla cuando ya se realizó la primera transaccion
 # Aceptar responder con "Si" "si" y "SI" (lo mismo con NO, no, No)
 
 # SECUNDARIO
@@ -77,7 +79,6 @@ class Check:
             else:
                 print("Recuerde que el Numero de cuenta solo contiene numeros\n Por favor, verifique su respuesta e intente otra vez")
                 PatitoBank.volver_opcion(opcion)
-
     def existe_numCuenta(numCuenta_input, opcion):
         buscar_numCuenta = local_cuentas.query(Cuenta).filter(Cuenta.numCuenta == numCuenta_input).first()
         if buscar_numCuenta == None:
@@ -85,6 +86,14 @@ class Check:
             PatitoBank.volver_opcion(opcion)
         elif buscar_numCuenta != None:
             print("El número de cuenta colocado está asociado a esta cuenta:: ", buscar_numCuenta)
+    def transaccion_cuentaCreada(input):
+        numCuenta_input = input
+        user_to_delete = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input, Transaccion.tipo == "Cuenta Creada").first()
+        if user_to_delete != None:
+            local_transacciones.delete(user_to_delete)
+            local_transacciones.commit()
+        elif user_to_delete == None:
+            pass
 
 ### --- OTRAS FUNCIONES
 def pedir_prestamo(monto_input, numCuenta_input):
@@ -170,9 +179,10 @@ def crear_cuenta():
     ## C // Generar Numero de cuenta de 10 dígitos
     generar_numCuenta = int(random.randint(1000000000, 9999999999))
     nuevo_numCuenta = str(generar_numCuenta)
+    fecha_actual = datetime.now()
 
-    nueva_cuenta = Cuenta(titular=titular_input, curp=curp_input, numCuenta=nuevo_numCuenta)
-    nuevo_balance = Transaccion(numCuenta=nuevo_numCuenta, balance=0, tipo="Cuenta creada")
+    nueva_cuenta = Cuenta(titular=titular_input, curp=curp_input, numCuenta=nuevo_numCuenta, fecha_creacion=fecha_actual)
+    nuevo_balance = Transaccion(numCuenta=nuevo_numCuenta, balance=0, tipo="Cuenta Creada", concepto="Esta cuenta ha sido creada recientemente y no tiene ninguna transacción", fecha=fecha_actual)
 
     # Agregar a la base de datos
     SQLFuncion.añadir("cuenta", nueva_cuenta)
@@ -194,23 +204,27 @@ def ver_cuenta_balance():
     ## B // Mostrar balance de la cuenta
     cuenta_balance = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).order_by(
         Transaccion.id.desc()).first()
-    print("El balance es cuenta es: $", cuenta_balance.soloBalance())
 
-    ## C // Pedir préstamo
-    posible_prestamo = int(cuenta_balance.soloBalance() * 0.8) # Solo se puede prestar hasta el 80% del balance de la cuenta
-    print("Puede pedir hasta $", posible_prestamo, "como prestamo")
-    calcular_prestamo(posible_prestamo)
-    prestamo = input("\n¿Desea pedir un préstamo? (Si o No): ")
+    if cuenta_balance.soloBalance() == 0:
+        print("Esta cuenta no tiene dinero")
+    elif cuenta_balance.soloBalance() > 1:
+        print("El balance es cuenta es: $", cuenta_balance.soloBalance())
 
-    if prestamo == "Si":
-        monto_input = int(input("¿Cuanto dinero necesita?: $"))
-        if monto_input > posible_prestamo:
-            print("Disculpe, el monto que necesita es más del que le podemos prestar")
+        ## C // Pedir préstamo
+        posible_prestamo = int(cuenta_balance.soloBalance() * 0.8) # Solo se puede prestar hasta el 80% del balance de la cuenta
+        print("Puede pedir hasta $", posible_prestamo, "como prestamo")
+        calcular_prestamo(posible_prestamo)
+        prestamo = input("\n¿Desea pedir un préstamo? (Si o No): ")
+
+        if prestamo == "Si":
+            monto_input = int(input("¿Cuanto dinero necesita?: $"))
+            if monto_input > posible_prestamo:
+                print("Disculpe, el monto que necesita es más del que le podemos prestar")
+                pass
+            elif monto_input < posible_prestamo:
+                pedir_prestamo(monto_input, numCuenta_input)
+        elif prestamo == "No":
             pass
-        elif monto_input < posible_prestamo:
-            pedir_prestamo(monto_input, numCuenta_input)
-    elif prestamo == "No":
-        pass
 
     ## D // Volver al menu de opciones
     PatitoBank.volver("2")
@@ -222,6 +236,14 @@ def depositar_dinero():
     Check.numCuenta(numCuenta_input, "3") # Si los datos son correctos
     Check.existe_numCuenta(numCuenta_input, "3") # Si existe la cuenta
 
+    # ¿Desea depositar dinero a esa cuenta?
+    esta_cuenta = input("¿Desea depositar dinero a esta cuenta? (Si o No): ")
+
+    if esta_cuenta == "Si":
+        pass
+    elif esta_cuenta == "No":
+        PatitoBank.volver_opcion("3")
+
     # B // Ingresar datos del depósito (Monto / Fecha y Hora / Concepto)
     monto_input = int(input("¿Cuanto dinero desea depositar?: $"))
     fecha_input = print("La fecha será colocada como: ", datetime.now())
@@ -229,6 +251,7 @@ def depositar_dinero():
     concepto_input = str(input("Coloque el concepto de este deposito: "))
 
     # Agregar balance nuevo
+    fecha_actual = datetime.now()
     transacciones = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).order_by(
         Transaccion.id.desc()).first()
     nuevo_balance = transacciones.soloBalance() + monto_input
@@ -236,8 +259,11 @@ def depositar_dinero():
                                     balance=nuevo_balance,
                                     tipo="Deposito",
                                     monto=monto_input,
-                                    concepto=concepto_input)
+                                    concepto=concepto_input,
+                                    fecha= fecha_actual)
     print("Transaccion realizada con éxito. Información:", nueva_transaccion.dataTransaccion())
+    # Quitar de la base de datos la primera transaccion (Cuenta Creada)
+    Check.transaccion_cuentaCreada(numCuenta_input)
     # Añadir a la base de datos
     SQLFuncion.añadir("transaccion", nueva_transaccion)
 
@@ -248,9 +274,16 @@ def depositar_dinero():
 def retirar_dinero():
     # A // Ingresar numero de cuenta a depositar dinero
     numCuenta_input = str(input("Coloque el numero de cuenta del usuario: "))
-    Check.numCuenta(numCuenta_input, "4") # Si los datos son correctos
-    Check.existe_numCuenta(numCuenta_input, "4") # Si existe la cuenta
+    Check.numCuenta(numCuenta_input, "3") # Si los datos son correctos
+    Check.existe_numCuenta(numCuenta_input, "3") # Si existe la cuenta
 
+    # ¿Desea depositar dinero a esa cuenta?
+    esta_cuenta = input("¿Desea depositar dinero a esta cuenta? (Si o No): ")
+
+    if esta_cuenta == "Si":
+        pass
+    elif esta_cuenta == "No":
+        PatitoBank.volver_opcion("4")
     # B // Ingresar datos del depósito (Monto / Fecha y Hora / Concepto)
     monto_input = int(input("¿Cuanto dinero desea retirar?: $"))
     fecha_input = print("La fecha será colocada como: ", datetime.now())
@@ -258,6 +291,7 @@ def retirar_dinero():
     concepto_input = str(input("Coloque el concepto de este retiro: "))
 
     # Agregar balance nuevo
+    fecha_actual = datetime.now()
     transacciones = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).order_by(
         Transaccion.id.desc()).first()
     nuevo_balance = transacciones.soloBalance() - monto_input
@@ -265,8 +299,11 @@ def retirar_dinero():
                                     balance=nuevo_balance,
                                     tipo="Retiro",
                                     monto=monto_input,
-                                    concepto=concepto_input)
-    print("Retiro realizado con éxito. Información:", nueva_transaccion.dataTransaccion())
+                                    concepto=concepto_input,
+                                    fecha= fecha_actual)
+    print("Retiro realizada con éxito. Información:", nueva_transaccion.dataTransaccion())
+    # Quitar de la base de datos la primera transaccion (Cuenta Creada)
+    Check.transaccion_cuentaCreada(numCuenta_input)
     # Añadir a la base de datos
     SQLFuncion.añadir("transaccion", nueva_transaccion)
 
@@ -283,7 +320,13 @@ def mostrar_cuentas():
     cantidad_cuentas = local_cuentas.query(Cuenta).count()
     if cantidad_cuentas == 0:
         print("No hay cuentas en la base de datos")
-    if cantidad_cuentas != 0:
+    elif cantidad_cuentas == 1:
+        print("\nCuenta creada hasta ahora")
+        cuentas = local_cuentas.query(Cuenta).all()
+        print(cuentas)
+
+        print("Se han creado", cantidad_cuentas, "cuenta hasta ahora")
+    elif cantidad_cuentas != 0:
         print("\nCuentas creadas hasta ahora")
         cuentas = local_cuentas.query(Cuenta).all()
         for cuenta in cuentas:
@@ -343,13 +386,19 @@ def ver_cuenta_historial():
 
     if cantidad_transacciones == 0:
         print("No hay cuentas en la base de datos")
-    if cantidad_transacciones != 0:
+    elif cantidad_transacciones == 1:
+        print("\nTransaccion realizada hasta ahora")
+        transacciones = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).all()
+        print(transacciones)
+
+        print("Se han hecho", cantidad_transacciones, "transaccion hasta ahora")
+    elif cantidad_transacciones != 0:
         print("\nTransacciones realizadas hasta ahora")
         transacciones = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).all()
         for transaccione in transacciones:
             print(transaccione)
 
-        print("Se han creado", cantidad_transacciones, "transacciones hasta ahora")
+        print("Se han hecho", cantidad_transacciones, "transacciones hasta ahora")
 
     ## D // Volver al menu de opciones
     PatitoBank.volver("6")
