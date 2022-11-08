@@ -27,10 +27,10 @@ database_transacciones = sessionmaker(engine_transacciones)
 class Cuenta(Base):
     __tablename__= "cuentas"
     id=Column(Integer(), primary_key=True)
-    titular=Column(String(25),nullable=False, unique=True)
+    titular=Column(String(25),nullable=False, unique=False)
     curp=Column(String(20), nullable=False, unique=True)
     numCuenta=Column(String(10), nullable=False, unique=True)
-    fecha_creacion=Column(DateTime(),default=datetime.now())
+    fecha_creacion=Column(DateTime(), nullable=True, unique=False)
 
     def __repr__(self):
         return f"< Titular = {self.titular} / Curp = {self.curp} / Numero de cuenta = {self.numCuenta} >"
@@ -42,11 +42,11 @@ class Cuenta(Base):
 class Transaccion(Base):
     __tablename__= "transacciones"
     id=Column(Integer(), primary_key=True)
-    numCuenta=Column(Integer(), nullable=False, unique=False)
+    numCuenta=Column(String(10), nullable=False, unique=False)
     balance=Column(Integer(), nullable=False, unique=False)
     tipo=Column(String(10), nullable=True, unique=False)
     monto=Column(Integer(), nullable=True, unique=False)
-    fecha=Column(DateTime(),default= datetime.now())
+    fecha=Column(DateTime(), nullable=True, unique=False)
     concepto=Column(String(25), nullable=True, unique=False)
 
     def __repr__(self):
