@@ -299,8 +299,8 @@ def retirar_dinero():
 
     ## A // Ingresar numero de cuenta a depositar dinero
     numCuenta_input = str(input("├ Coloque el numero de cuenta del usuario: "))
-    Check.numCuenta(numCuenta_input, "3") # Si los datos son correctos
-    Check.existe_numCuenta(numCuenta_input, "3") # Si existe la cuenta
+    Check.numCuenta(numCuenta_input, "4") # Si los datos son correctos
+    Check.existe_numCuenta(numCuenta_input, "4") # Si existe la cuenta
 
     # ¿Desea depositar dinero a esa cuenta?
     esta_cuenta = input("\n├ ¿Desea retirar dinero de esta cuenta? (Si o No): ")
@@ -314,7 +314,7 @@ def retirar_dinero():
         PatitoBank.volver_al_menu("4")
 
     ## B // Ingresar datos del depósito (Monto / Fecha y Hora / Concepto)
-    print("├ Coloque los datos para el depósito:")
+    print("├ Coloque los datos para el retiro:")
 
     monto_input = int(input("• Dinero a retirar: $ "))
     fecha_input = print("• Fecha y hora: (se coloca de manera automática)", datetime.now())
@@ -339,7 +339,7 @@ def retirar_dinero():
 
     print("\n├ Retiro realizado con éxito. Datos: \n", nueva_transaccion.dataTransaccion())
     ## C // Volver al menu de opciones
-    PatitoBank.volver_al_menu("3")
+    PatitoBank.volver_al_menu("4")
 # Opcion 5: Ver todas las cuentas de banco creadas
 def mostrar_cuentas():
     ## A // Ingresar contraseña especial
