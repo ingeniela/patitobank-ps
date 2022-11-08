@@ -1,19 +1,23 @@
-import random
-import re
 from SQLArchivo import *
 from datetime import datetime
+import random
+import re
 
-#5811767397
-#1090417076
 
-## TAREAS SG:
-# PRINCIPAL
+### Cambios realizados:
+##PRINCIPALES
+
+##SECUNDARIOS
+
+### TAREAS SG:
+## PRINCIPAL
+# OP2: Mostrar fecha actual y hacer calculos del prestamo +30 dias a partir de hoy en datetime.now()
 # Aceptar responder con "Si" "si" y "SI" (lo mismo con NO, no, No)
 
-# SECUNDARIO
+## SECUNDARIO
 # Corregir "redirigido a" o qué, elimina eso
 # Corregir Output colocado (agregar Mayusculas, acentos y \n donde sea necesario)
-# OP2: Mostrar fecha actual y hacer calculos del prestamo +30 dias a partir de hoy en datetime.now()
+# Corregir todos los comentarios, agregarle comentarios a las funciones para explicar para qué sirven
 
 ### ------------ BACKEND: que todo funcione ###
 
