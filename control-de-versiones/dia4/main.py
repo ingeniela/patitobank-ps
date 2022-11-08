@@ -1,22 +1,27 @@
 from SQLArchivo import *
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import random
 import re
 
 
 ### Cambios realizados:
 ##PRINCIPALES
+# OP2: Mostrar fecha actual y hacer calculos del prestamo 30/60 y 90 dias a partir de hoy
+# Aceptar responder con "Si" "si" y "SI" (lo mismo con NO, no, No) #buscar "(Si o No)"
+# Mejorar opcion 5 y 6, no transacciones pero está la transaccion de cuenta creada
+# Si el usuario coloca un numero de cuenta inexistente, se le devolverá al menu de inciio
 
 ##SECUNDARIOS
+# Corregir el output al llamar mostrar los datos de la cuenta y transacciones
+# Corregir Output colocado (agregar Mayusculas, acentos y \n donde sea necesario)
+# Mejorar las opciones con print()
+# Corregir Output "redirigido a"
 
 ### TAREAS SG:
 ## PRINCIPAL
-# OP2: Mostrar fecha actual y hacer calculos del prestamo +30 dias a partir de hoy en datetime.now()
-# Aceptar responder con "Si" "si" y "SI" (lo mismo con NO, no, No)
-
 ## SECUNDARIO
-# Corregir "redirigido a" o qué, elimina eso
-# Corregir Output colocado (agregar Mayusculas, acentos y \n donde sea necesario)
+# corregir regex de CURP (mas específico)
 # Corregir todos los comentarios, agregarle comentarios a las funciones para explicar para qué sirven
 
 ### ------------ BACKEND: que todo funcione ###
@@ -86,10 +91,12 @@ class Check:
     def existe_numCuenta(numCuenta_input, opcion):
         buscar_numCuenta = local_cuentas.query(Cuenta).filter(Cuenta.numCuenta == numCuenta_input).first()
         if buscar_numCuenta == None:
+            opcion = "menu"
             print("El numero de cuenta que usted colocó no existe")
             PatitoBank.volver_opcion(opcion)
         elif buscar_numCuenta != None:
-            print("El número de cuenta colocado está asociado a esta cuenta:: ", buscar_numCuenta)
+            print("El número de cuenta colocado está asociado a esta cuenta: ", buscar_numCuenta)
+            pass
     def transaccion_cuentaCreada(input):
         numCuenta_input = input
         user_to_delete = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input, Transaccion.tipo == "Cuenta Creada").first()
@@ -134,7 +141,7 @@ def pedir_prestamo(monto_input, numCuenta_input):
     # Pregunta:
     transaccion = input("\n ¿Desea pedir este préstamo? (Si o No): ")
 
-    if transaccion == "Si":
+    if transaccion == "Si" or transaccion == "si" or transaccion == "SI":
         transacciones = local_transacciones.query(Transaccion).filter(
             Transaccion.numCuenta == numCuenta_input).order_by(
             Transaccion.id.desc()).first()
@@ -146,8 +153,10 @@ def pedir_prestamo(monto_input, numCuenta_input):
         SQLFuncion.añadir("transaccion", nueva_transaccion)
 
         print("Prestamo realizado con éxito. Información: ", nueva_transaccion.dataTransaccion())
-    elif transaccion == "No":
+    elif transaccion == "No" or transaccion == "no" or transaccion == "NO":
         print("Ha cancelado este prestamo, por lo que no se realizará")
+        pass
+    else:
         pass
 def calcular_prestamo(monto_input):
     interesFecha = 0.08 #8% por 30 dias
@@ -156,27 +165,34 @@ def calcular_prestamo(monto_input):
     interesX60dias = int((interesFecha * 2 + interesMonto)*100)
     interesX90dias = int((interesFecha * 3 + interesMonto)*100)
 
-    print("Si lo paga en: / 30 dias: %", interesX30dias , "de interes / 60 días: %", interesX60dias, "de interes / 90 dias: %", interesX90dias, "de interes")
+    fecha_actual = datetime.now()
+    treintaDias = fecha_actual + relativedelta(months=1)
+    sesentaDias = fecha_actual + relativedelta(months=2)
+    noventaDias = fecha_actual + relativedelta(months=3)
+
+    print("<<Si lo paga en 30 días: (", treintaDias.strftime("20%y-%m-%d"), ") es %", interesX30dias, "de interes", "| 60 dias: (", sesentaDias.strftime("20%y-%m-%d"), ") es %", interesX60dias, "de interés", "| 90 días: (", noventaDias.strftime("20%y-%m-%d"), ") es %", interesX90dias, "de interes")
+
 def modo_admin(input, opcion):
     contrasena = input
     respuesta = "PatosPatos"
 
     if contrasena == respuesta:
+        print("├ Usted ha accedido al modo administrador\n")
         pass
     else:
-        print("Contraseña de Administrador incorrecta")
-        PatitoBank.volver_opcion(opcion)
+        print("╰─Contraseña de administrador incorrecta. Será le redirigirá al menú de opciones")
+        PatitoBank.volver_menu(1)
 
 ### --- OPCIONES DE SELECCION
 # Opcion 1: Crear una cuenta
 def crear_cuenta():
-    print("Crear una cuenta nueva")
+    print("├ Coloque los datos que se le indiquen para poder crear una cuenta")
     ## A // Crear la cuenta: Nombre del titular
-    titular_input = str(input("Coloque el nombre del titular: "))
+    titular_input = str(input("• Nombre del titular: "))
     Check.titular(titular_input, "1")
 
     ## B// Curp: Ingresar Clave Unica de Registro Poblacional
-    curp_input = str(input("Coloque el CURP: "))
+    curp_input = str(input("• CURP del titular: "))
     Check.curp(curp_input, "1")
     Check.existe_curp(curp_input, "1")
 
@@ -193,15 +209,16 @@ def crear_cuenta():
     SQLFuncion.añadir("transaccion", nuevo_balance)
 
     ## D // Mostrar datos de la cuenta creada
-    print("\n¡Cuenta creada con éxito!\n", nueva_cuenta, "Por favor guarde estos datos en un lugar seguro.")
+    print("\n¡Cuenta creada con éxito!", nueva_cuenta, "\n<<Guarde estos datos en un lugar seguro>>")
 
     ## E // Volver al menu de opciones
     PatitoBank.volver("1")
 
 # Opcion 2: Ver el balance de una cuenta
 def ver_cuenta_balance():
+    print("├ Coloque los datos que se le indiquen para poder ver el balance de una cuenta")
     ## A // Ingresar numero de cuenta para ver el balance
-    numCuenta_input = str(input("Coloque el numero de cuenta del usuario: "))
+    numCuenta_input = str(input("• Numero de cuenta del titular: "))
     Check.numCuenta(numCuenta_input, "2") # Si los datos son correctos
     Check.existe_numCuenta(numCuenta_input, "2") # Si existe la cuenta
 
@@ -210,25 +227,27 @@ def ver_cuenta_balance():
         Transaccion.id.desc()).first()
 
     if cuenta_balance.soloBalance() == 0:
-        print("Esta cuenta no tiene dinero")
+        print("<<Esta cuenta no tiene dinero>>")
     elif cuenta_balance.soloBalance() > 1:
-        print("El balance es cuenta es: $", cuenta_balance.soloBalance())
+        print("\nEl balance es cuenta es: $", cuenta_balance.soloBalance(), "\n")
 
         ## C // Pedir préstamo
         posible_prestamo = int(cuenta_balance.soloBalance() * 0.8) # Solo se puede prestar hasta el 80% del balance de la cuenta
-        print("Puede pedir hasta $", posible_prestamo, "como prestamo")
+        print("<<Puede pedir hasta $", posible_prestamo, "como préstamo>>")
         calcular_prestamo(posible_prestamo)
         prestamo = input("\n¿Desea pedir un préstamo? (Si o No): ")
 
-        if prestamo == "Si":
+        if prestamo == "Si" or prestamo == "si" or prestamo == "SI":
             monto_input = int(input("¿Cuanto dinero necesita?: $"))
             if monto_input > posible_prestamo:
                 print("Disculpe, el monto que necesita es más del que le podemos prestar")
                 pass
             elif monto_input < posible_prestamo:
                 pedir_prestamo(monto_input, numCuenta_input)
-        elif prestamo == "No":
+        elif prestamo == "No" or prestamo == "no" or prestamo == "NO":
             pass
+        else:
+            PatitoBank.volver_opcion("4")
 
     ## D // Volver al menu de opciones
     PatitoBank.volver("2")
@@ -236,23 +255,25 @@ def ver_cuenta_balance():
 # Opcion 3
 def depositar_dinero():
     # A // Ingresar numero de cuenta a depositar dinero
-    numCuenta_input = str(input("Coloque el numero de cuenta del usuario: "))
+    numCuenta_input = str(input("├ Coloque el numero de cuenta del usuario: "))
     Check.numCuenta(numCuenta_input, "3") # Si los datos son correctos
     Check.existe_numCuenta(numCuenta_input, "3") # Si existe la cuenta
 
     # ¿Desea depositar dinero a esa cuenta?
-    esta_cuenta = input("¿Desea depositar dinero a esta cuenta? (Si o No): ")
-
-    if esta_cuenta == "Si":
+    esta_cuenta = input("\n├ ¿Desea depositar dinero a esta cuenta? (Si o No): ")
+    print("├ Coloque los datos para el depósito:")
+    if esta_cuenta == "Si" or esta_cuenta == "si" or esta_cuenta == "SI":
         pass
-    elif esta_cuenta == "No":
+    elif esta_cuenta == "No" or esta_cuenta == "no" or esta_cuenta == "NO":
+        PatitoBank.volver_opcion("3")
+    else:
         PatitoBank.volver_opcion("3")
 
     # B // Ingresar datos del depósito (Monto / Fecha y Hora / Concepto)
-    monto_input = int(input("¿Cuanto dinero desea depositar?: $"))
-    fecha_input = print("La fecha será colocada como: ", datetime.now())
+    monto_input = int(input("• Dinero a depositar: $"))
+    fecha_input = print("• Fecha y hora: (se coloca de manera automática)", datetime.now())
     # SG: seleccionar si se quiere o no la fecha así
-    concepto_input = str(input("Coloque el concepto de este deposito: "))
+    concepto_input = str(input("• Concepto: "))
 
     # Agregar balance nuevo
     fecha_actual = datetime.now()
@@ -265,7 +286,7 @@ def depositar_dinero():
                                     monto=monto_input,
                                     concepto=concepto_input,
                                     fecha= fecha_actual)
-    print("Transaccion realizada con éxito. Información:", nueva_transaccion.dataTransaccion())
+    print("\n├ Transaccion realizada con éxito. Datos: \n", nueva_transaccion.dataTransaccion())
     # Quitar de la base de datos la primera transaccion (Cuenta Creada)
     Check.transaccion_cuentaCreada(numCuenta_input)
     # Añadir a la base de datos
@@ -277,22 +298,25 @@ def depositar_dinero():
 # Opcion 4
 def retirar_dinero():
     # A // Ingresar numero de cuenta a depositar dinero
-    numCuenta_input = str(input("Coloque el numero de cuenta del usuario: "))
+    numCuenta_input = str(input("├ Coloque el numero de cuenta del usuario: "))
     Check.numCuenta(numCuenta_input, "3") # Si los datos son correctos
     Check.existe_numCuenta(numCuenta_input, "3") # Si existe la cuenta
 
     # ¿Desea depositar dinero a esa cuenta?
-    esta_cuenta = input("¿Desea depositar dinero a esta cuenta? (Si o No): ")
-
-    if esta_cuenta == "Si":
+    esta_cuenta = input("\n├ ¿Desea retirar dinero de esta cuenta? (Si o No): ")
+    print("├ Coloque los datos para el retiro:")
+    if esta_cuenta == "Si" or esta_cuenta == "si" or esta_cuenta == "SI":
         pass
-    elif esta_cuenta == "No":
-        PatitoBank.volver_opcion("4")
+    elif esta_cuenta == "No" or esta_cuenta == "no" or esta_cuenta == "NO":
+        PatitoBank.volver_opcion("3")
+    else:
+        PatitoBank.volver_opcion("3")
+
     # B // Ingresar datos del depósito (Monto / Fecha y Hora / Concepto)
-    monto_input = int(input("¿Cuanto dinero desea retirar?: $"))
-    fecha_input = print("La fecha será colocada como: ", datetime.now())
+    monto_input = int(input("• Dinero a retirar: $"))
+    fecha_input = print("• Fecha y hora: (se coloca de manera automática)", datetime.now())
     # SG: seleccionar si se quiere o no la fecha así
-    concepto_input = str(input("Coloque el concepto de este retiro: "))
+    concepto_input = str(input("• Concepto: "))
 
     # Agregar balance nuevo
     fecha_actual = datetime.now()
@@ -305,19 +329,19 @@ def retirar_dinero():
                                     monto=monto_input,
                                     concepto=concepto_input,
                                     fecha= fecha_actual)
-    print("Retiro realizada con éxito. Información:", nueva_transaccion.dataTransaccion())
+    print("\n├ Retiro realizado con éxito. Datos: \n", nueva_transaccion.dataTransaccion())
     # Quitar de la base de datos la primera transaccion (Cuenta Creada)
     Check.transaccion_cuentaCreada(numCuenta_input)
     # Añadir a la base de datos
     SQLFuncion.añadir("transaccion", nueva_transaccion)
 
     # C // Volver al menu de opciones
-    PatitoBank.volver("4")
+    PatitoBank.volver("3")
 
 # Opcion 5
 def mostrar_cuentas():
     # A // Ingresar contraseña especial
-    contrasena = input("Ingrese la contraseña especial para acceder a este espacio: ")
+    contrasena = input("├ Ingrese contraseña de administrador: ")
     modo_admin(contrasena, "5")
 
     # B // Mostrar todas las cuentas creadas
@@ -325,29 +349,29 @@ def mostrar_cuentas():
     if cantidad_cuentas == 0:
         print("No hay cuentas en la base de datos")
     elif cantidad_cuentas == 1:
-        print("\nCuenta creada hasta ahora")
+        print("\nCuenta creada:")
         cuentas = local_cuentas.query(Cuenta).all()
         print(cuentas)
 
-        print("Se han creado", cantidad_cuentas, "cuenta hasta ahora")
+        print("<<Se han creado", cantidad_cuentas, "cuenta hasta ahora>>")
     elif cantidad_cuentas != 0:
-        print("\nCuentas creadas hasta ahora")
+        print("\nCuentas creadas: ")
         cuentas = local_cuentas.query(Cuenta).all()
         for cuenta in cuentas:
             print(cuenta.data_basico())
 
-        print("Se han creado", cantidad_cuentas, "cuentas hasta ahora")
+        print("<<Se han creado", cantidad_cuentas, "cuentas hasta ahora>>")
 
         # C // Opciones:
         opciones_avanzadas = str(input("\n¿Desea entrar a las opciones avanzadas? (Si o No): "))
 
-        if opciones_avanzadas == "Si":
+        if opciones_avanzadas == "Si" or opciones_avanzadas == "si" or opciones_avanzadas == "SI":
             print("1. Eliminar todas las cuentas de banco creadas hasta ahora. \n2. Eliminar todas las transacciones creadas hasta ahora")
             seleccionar = int(input("¿Que desea hacer?"))
 
             if seleccionar == 1:
                 try:
-                    eliminar_cuentas = local_cuentas.query(Cuenta).delete()
+                    eliminar_cuenta = local_cuentas.query(Cuenta).delete()
                     local_cuentas.commit()
                     print("Se han eliminado todas las cuentas de la base de datos")
                     pass
@@ -365,11 +389,13 @@ def mostrar_cuentas():
                     local_transacciones.rollback()
                     print("No se han encontrado transacciones en la base de datos")
                     pass
-
-            PatitoBank.volver_opcion("5")
-        elif opciones_avanzadas == "No":
-            PatitoBank.volver_opcion("5")
-
+            else:
+                pass
+            pass
+        elif opciones_avanzadas == "No" or opciones_avanzadas == "no" or opciones_avanzadas == "NO":
+            pass
+        else:
+            pass
 
     ## C // Volver al menu de opciones
     PatitoBank.volver("5")
@@ -377,7 +403,7 @@ def mostrar_cuentas():
 # Opcion 6
 def ver_cuenta_historial():
     # A // Ingresar contraseña especial
-    contrasena = input("Ingrese la contraseña especial para acceder a este espacio: ")
+    contrasena = input("├ Ingrese la contraseña de administrador: ")
     modo_admin(contrasena, "6")
 
     # B // Ingresar numero de cuenta revisar historial
@@ -389,20 +415,26 @@ def ver_cuenta_historial():
     cantidad_transacciones = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).count()
 
     if cantidad_transacciones == 0:
-        print("No hay cuentas en la base de datos")
+        print("No se ha encontrado transacciones hechas por esta cuenta en la base de datos")
     elif cantidad_transacciones == 1:
-        print("\nTransaccion realizada hasta ahora")
-        transacciones = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).all()
-        print(transacciones)
+        usuario_CuentaCreada = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input,
+                                                                       Transaccion.tipo == "Cuenta Creada").first()
+        if usuario_CuentaCreada != None: # si hay
+            print("No se ha encontrado transacciones hechas por esta cuenta en la base de datos")
+        elif usuario_CuentaCreada == None: # sino hay
+            print("\nTransaccion realizada hasta ahora")
+            transacciones = local_transacciones.query(Transaccion).filter(
+                Transaccion.numCuenta == numCuenta_input).all()
+            print(transacciones)
 
-        print("Se han hecho", cantidad_transacciones, "transaccion hasta ahora")
-    elif cantidad_transacciones != 0:
-        print("\nTransacciones realizadas hasta ahora")
+            print("<<Se ha hecho", cantidad_transacciones, "transaccion hasta ahora>>")
+    elif cantidad_transacciones > 0:
+        print("\nTransacciones realizadas:")
         transacciones = local_transacciones.query(Transaccion).filter(Transaccion.numCuenta == numCuenta_input).all()
         for transaccione in transacciones:
             print(transaccione)
 
-        print("Se han hecho", cantidad_transacciones, "transacciones hasta ahora")
+        print("<<Se han hecho", cantidad_transacciones, "transacciones hasta ahora>>")
 
     ## D // Volver al menu de opciones
     PatitoBank.volver("6")
@@ -410,70 +442,85 @@ def ver_cuenta_historial():
 ### ------------ FrontEnd: que todo se vea bonito ###
 class PatitoBank:
     def bienvenida(self):
-        print("¡Sea bienvenido a PatitoBank!")
+        print("╭───────────────────────────────────────────╮\n|   PatitoBank. El mejor banco de Python.   |\n╰───────────────────────────────────────────╯")
 
-    def menu_opcion():
-        print("\nMenu de opciones:")
-        print(
-            "1: Crear una cuenta de banco \n2: Ver el balance de una cuenta de banco \n3: Depositar dinero a una cuenta de banco \n4: Retirar dinero de una cuenta de banco \n5: Mostrar todas las cuentas de banco \n6: Ver historial de transaccion de una cuenta de banco\n")
-        opcion = str(input("Seleccione la opción que desee: "))
+    def menu_opcion(self):
+        print("\n╭─────── Menu de opciones:\n├──> ¿Qué desee hacer?\n├ 1. Crear una cuenta de banco\n├ 2. Ver el balance de una cuenta\n├ 3. Depositar dinero a una cuenta\n├ 4. Retirar dinero a una cuenta\n├ 5. Ver todas las cuentas de banco creadas\n├ 6. Ver el historial de transacciones de una cuenta\n╰─ 0. Salir de Patito Bank")
+        opcion = str(input("\n╭───Seleccione una opción: "))
 
         if opcion == "1":
-            print("\n")
+            print("├ Crear una cuenta de banco\n")
             crear_cuenta()
         elif opcion == "2":
-            print("\n")
+            print("├ Ver el balance de una cuenta\n")
             ver_cuenta_balance()
         elif opcion == "3":
-            print("\n")
+            print("├ Depositar dinero a una cuenta\n")
             depositar_dinero()
         elif opcion == "4":
-            print("\n")
+            print("├ Retirar dinero a una cuenta\n")
             retirar_dinero()
         elif opcion == "5":
-            print("\n")
+            print("├ Ver todas las cuentas de banco creadas\n")
             mostrar_cuentas()
         elif opcion == "6":
-            print("\n")
+            print("├ Ver el historial de transacciones de una cuenta\n")
             ver_cuenta_historial()
+        elif opcion == "0":
+            print("╭─────────────────────────────────────╮\n|  Gracias por utilizar PatitoBank.   |\n╰─────────────────────────────────────╯")
+            exit()
         else:
-            print("La opción que seleccionó es no existe o es inválida")
-            PatitoBank.menu_opcion()
+            print("├ La opción que seleccionó es inválida ┤")
+            PatitoBank.menu_opcion(1)
 
     def volver_opcion(opcion):
         if opcion == "1":
-            print("Será redirigido a crear una Cuenta")
+            print("╭────────")
+            print("├ Crear una cuenta de banco\n")
             crear_cuenta()
         elif opcion == "2":
-            print("Será redirigido a ver el balance de una Cuenta Bancaria")
+            print("╭────────")
+            print("├ Ver el balance de una cuenta\n")
             ver_cuenta_balance()
         elif opcion == "3":
-            print("Será redirigido a depositar dinero")
+            print("╭────────")
+            print("├ Depositar dinero a una cuenta\n")
             depositar_dinero()
         elif opcion == "4":
-            print("Será redirigido a retirar dinero")
+            print("╭────────")
+            print("├ Retirar dinero a una cuenta\n")
             retirar_dinero()
         elif opcion == "5":
-            print("Será redirigido a Mostrar cuentas")
+            print("╭────────")
+            print("├ Ver todas las cuentas de banco creadas\n")
             mostrar_cuentas()
         elif opcion == "6":
-            print("Será redirigido a ver el historial de una cuenta")
+            print("╭────────")
+            print("├ Ver el historial de transacciones de una cuenta\n")
             ver_cuenta_historial()
+        elif opcion == "0":
+            print("╭─────────────────────────────────────╮\n|  Gracias por utilizar PatitoBank.   |\n╰─────────────────────────────────────╯")
+            exit()
         else:
-            print("La opción que seleccionó es no existe o es inválida")
-            PatitoBank.menu_opcion()
+            print("├ La opción que seleccionó es inválida ┤")
+            PatitoBank.menu_opcion(1)
 
-    def volver_menu():
-        PatitoBank.menu_opcion()
+    def volver_menu(self):
+        PatitoBank.menu_opcion(1)
 
     def volver(opcion):
-        pregunta = input("\n¿Desea volver al menu de opciones? (Si o No): ")
+        pregunta = input("\n├ ¿Desea volver al menu de opciones? (Si o No): ")
 
-        if pregunta == "Si":
-            PatitoBank.volver_menu()
-        elif pregunta == "No":
+        if pregunta == "Si" or pregunta == "si" or pregunta == "SI":
+            print("╰────────")
+            PatitoBank.volver_menu(1)
+        elif pregunta == "No" or pregunta == "no" or pregunta == "NO":
+            print("╰────────")
+            PatitoBank.volver_opcion(opcion)
+        else:
+            print("╰────────")
             PatitoBank.volver_opcion(opcion)
 
 ### ------------ SetUp: que el usuario lo pueda utilizar ###
 PatitoBank.bienvenida(1)
-PatitoBank.menu_opcion()
+PatitoBank.menu_opcion(1)

@@ -33,10 +33,10 @@ class Cuenta(Base):
     fecha_creacion=Column(DateTime(), nullable=True, unique=False)
 
     def __repr__(self):
-        return f"< Titular = {self.titular} / Curp = {self.curp} / Numero de cuenta = {self.numCuenta} >"
+        return f"\n• Titular = {self.titular} \n• Curp = {self.curp} \n• Numero de cuenta = {self.numCuenta}"
 
     def data_basico(self):
-        return f"< Titular = {self.titular} / Numero de cuenta = {self.numCuenta} >"
+        return f"| Titular = {self.titular} | Numero de cuenta = {self.numCuenta} |"
 
 ### Clase de Transaccion
 class Transaccion(Base):
@@ -50,9 +50,9 @@ class Transaccion(Base):
     concepto=Column(String(25), nullable=True, unique=False)
 
     def __repr__(self):
-        return f"< Numero de Cuenta = {self.numCuenta} / Balance = {self.balance} / Tipo = {self.tipo}  / Monto = {self.monto}  / Fecha = {self.fecha} / Concepto = {self.concepto} >"
+        return f"| Número de Cuenta = {self.numCuenta} | Balance = ${self.balance} | Tipo = {self.tipo}  | Monto = ${self.monto}  | Fecha = {self.fecha} | Concepto = {self.concepto} |"
 
     def dataTransaccion(self):
-        return f"< Numero de Cuenta = {self.numCuenta} / Tipo = {self.tipo}  / Monto = {self.monto}  / Fecha = {self.fecha} / Concepto = {self.concepto} >"
+        return f"| Número de Cuenta = {self.numCuenta} | Tipo = {self.tipo}  | Monto = ${self.monto}  | Fecha = {self.fecha} | Concepto = {self.concepto} |"
     def soloBalance(self):
         return self.balance
